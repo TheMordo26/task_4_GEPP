@@ -17,7 +17,14 @@ COPY . /var/www/html
 
 WORKDIR /var/www/html
 
+RUN groupadd -g 1000 appuser && useradd -u 1000 -g appuser -m appuser
+
+USER appuser
+
+RUN composer clear-cache
 RUN composer install --no-dev --optimize-autoloader
+
+USER root
 
 RUN chown -R www-data:www-data /var/www/html/var
 
