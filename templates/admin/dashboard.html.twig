@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+
+{% if app.session.get('force_reload') %}
+    <script>
+        sessionStorage.setItem('force_reload_once', 'true');
+        window.location.reload();
+    </script>
+    {% do app.session.remove('force_reload') %}
+{% endif %}
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="m-0">User Management</h1>
+            <form action="{{ path('app_logout') }}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </div>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show auto-dismiss" role="alert">
+                {{ message|raw }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <form method="post" action="{{ path('admin_user_action') }}">
+        <div class="mb-3 d-flex gap-2">
+            <button class="btn btn-danger" name="action" value="block" type="submit" disabled>
+                <i class="bi bi-lock-fill"></i> Block
+            </button>
+            <button class="btn btn-success" name="action" value="unblock" type="submit" disabled>
+                <i class="bi bi-unlock-fill"></i> Unblock
+            </button>
+            <button class="btn btn-secondary" name="action" value="delete" type="submit" disabled>
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('admin_user_action') }}">
+
+       <table id="usersTable" class="table table-striped table-hover align-middle text-center">
+            <thead>
+                <tr>
+                    <th scope="col"><input type="checkbox" id="selectAll"></th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td><input type="checkbox" name="selected_users[]" value="{{ user.id }}"></td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td data-order="{{ user.lastLogin ? user.lastLogin.timestamp : 0 }}">
+                            {% if user.lastLogin %}
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="timeago" 
+                                        data-timestamp="{{ user.lastLogin.timestamp }}"
+                                        title="{{ user.lastLogin|date('l, F j, Y H:i:s') }}">
+                                    </span>
+                                    <canvas id="chart-{{ user.id }}" width="100" height="30" class="mt-1"></canvas>
+                                </div>
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    function renderDashboard() {
+        {% for user in users %}
+            {% if user.lastLogin %}
+                new Chart(document.getElementById('chart-{{ user.id }}'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['7d', '6d', '5d', '4d', '3d', '2d', '1d'],
+                        datasets: [{
+                            label: 'Activity',
+                            data: [3, 1, 4, 2, 0, 5, 1],
+                            backgroundColor: '#0d6efd'
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { display: false },
+                            x: { display: false }
+                        }
+                    }
+                });
+            {% endif %}
+        {% endfor %}
+    }
+
+    function updateTimeAgo() {
+        const elements = document.querySelectorAll('.timeago');
+        const now = Date.now();
+
+        elements.forEach(el => {
+            const timestamp = parseInt(el.getAttribute('data-timestamp')) * 1000;
+            const diff = now - timestamp;
+
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            let text = '';
+            if (seconds < 60) text = 'less than a minute ago';
+            else if (minutes < 60) text = minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+            else if (hours < 24) text = hours + (hours === 1 ? ' hour ago' : ' hours ago');
+            else text = days + (days === 1 ? ' day ago' : ' days ago');
+
+            el.textContent = text;
+        });
+    }
+
+    function toggleActionButtons() {
+        const selected = $('input[name="selected_users[]"]:checked').length > 0;
+        $('button[name="action"]').prop('disabled', !selected);
+    }
+
+    $(document).ready(function () {
+        $('#usersTable').DataTable({
+            language: {
+                search: "Filter records:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ users",
+                paginate: {
+                    previous: "Prev",
+                    next: "Next"
+                },
+                zeroRecords: "No matching users found"
+            },
+            columnDefs: [
+                { orderable: false, targets: 0 }
+            ]
+        });
+
+        renderDashboard();
+        updateTimeAgo();
+
+        $('#selectAll').on('change', function () {
+            $('input[name="selected_users[]"]').prop('checked', this.checked);
+            toggleActionButtons();
+        });
+
+        $('input[name="selected_users[]"]').on('change', toggleActionButtons);
+
+        toggleActionButtons();
+
+        setInterval(updateTimeAgo, 60000);
+
+        if (sessionStorage.getItem('force_reload_once')) {
+            sessionStorage.removeItem('force_reload_once');
+            return;
+        }
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.auto-dismiss').forEach(el => {
+            el.classList.remove('show');
+            el.classList.add('fade');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 3000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

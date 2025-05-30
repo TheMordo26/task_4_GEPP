@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h1 class="mb-4 text-center">Create your account</h1>
+
+    {{ form_start(registrationForm, {
+        'attr': {'class': 'needs-validation', 'data-turbo': 'false'},
+        'method': 'POST'
+    }) }}
+
+    {% if registrationForm.vars.errors|length > 0 %}
+        <div class="alert alert-danger">
+            {{ form_errors(registrationForm) }}
+        </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <label for="{{ registrationForm.email.vars.id }}" class="form-label">Email address</label>
+        {{ form_widget(registrationForm.email, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': 'example@gmail.com'
+            }
+        }) }}
+        {{ form_errors(registrationForm.email) }}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ registrationForm.name.vars.id }}" class="form-label">Full Name</label>
+        {{ form_widget(registrationForm.name, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': 'Example Name'
+            }
+        }) }}
+        {{ form_errors(registrationForm.name) }}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ registrationForm.plainPassword.first.vars.id }}" class="form-label">Password</label>
+        {{ form_widget(registrationForm.plainPassword.first, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': '******'
+            }
+        }) }}
+        {{ form_errors(registrationForm.plainPassword.first) }}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ registrationForm.plainPassword.second.vars.id }}" class="form-label">Repeat Password</label>
+        {{ form_widget(registrationForm.plainPassword.second, {
+            'attr': {
+                'class': 'form-control',
+                'placeholder': '******'
+            }
+        }) }}
+        {{ form_errors(registrationForm.plainPassword.second) }}
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Register</button>
+
+    <div class="text-center mt-3">
+        Already have an account? <a href="{{ path('app_login') }}">Login here</a>
+    </div>
+
+    {{ form_end(registrationForm) }}
+</div>
+{% endblock %}
