@@ -1,12 +1,9 @@
 services:
   - type: web
     name: task4-app
-    env: php
-    plan: free
+    env: docker
     repo: https://github.com/TheMordo26/task_4_GEPP
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-    startCommand: php -S 0.0.0.0:10000 -t public
+    dockerfilePath: Dockerfile
     envVars:
       - key: APP_ENV
         value: prod
