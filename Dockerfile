@@ -19,10 +19,15 @@ WORKDIR /var/www/html
 
 RUN groupadd -g 1000 appuser && useradd -u 1000 -g appuser -m appuser
 
+RUN chown -R appuser:appuser /var/www/html
+
 USER appuser
 
+RUN php -v
+RUN composer --version
 RUN composer clear-cache
-RUN composer install --no-dev --optimize-autoloader
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 USER root
 
