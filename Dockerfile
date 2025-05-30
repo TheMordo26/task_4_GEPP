@@ -21,9 +21,11 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN chown -R www-data:www-data /var/www/html/var
 
-RUN echo '<Directory /var/www/html/public>
+RUN bash -c "cat > /etc/apache2/conf-available/symfony.conf <<EOF
+<Directory /var/www/html/public>
     AllowOverride All
-</Directory>' > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
+</Directory>
+EOF" && a2enconf symfony
 
 EXPOSE 80
 
