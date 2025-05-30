@@ -31,7 +31,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 USER root
 
-RUN chown -R www-data:www-data /var/www/html/var
+RUN [ -d /var/www/html/var ] && chown -R www-data:www-data /var/www/html/var || echo "Skipping chown, /var/www/html/var not found"
 
 RUN echo -e "<Directory /var/www/html/public>\n\
     AllowOverride All\n\
