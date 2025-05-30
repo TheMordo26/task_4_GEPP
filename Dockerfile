@@ -33,9 +33,7 @@ USER root
 
 RUN [ -d /var/www/html/var ] && chown -R www-data:www-data /var/www/html/var || echo "Skipping chown, /var/www/html/var not found"
 
-RUN echo -e "<Directory /var/www/html/public>\n\
-    AllowOverride All\n\
-</Directory>" > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
+RUN printf "<Directory /var/www/html/public>\n    AllowOverride All\n</Directory>\n" > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
 
 EXPOSE 80
 
