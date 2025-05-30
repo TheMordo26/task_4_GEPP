@@ -13,17 +13,19 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite
 
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
-
 COPY . /var/www/html
 
 WORKDIR /var/www/html
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-RUN chown -R www-data:www-data /var/www/html
+RUN composer run-script @auto-scripts || true
 
-RUN printf "<Directory /var/www/html/public>\n    AllowOverride All\n</Directory>\n" > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
+RUN mkdir -p var && chown -R www-data:www-data /var/www/html
+
+RUN echo "<Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+</Directory>" > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
 
 EXPOSE 80
 
