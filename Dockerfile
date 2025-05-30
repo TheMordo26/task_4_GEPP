@@ -13,25 +13,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite
 
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+
 COPY . /var/www/html
 
 WORKDIR /var/www/html
 
-RUN groupadd -g 1000 appuser && useradd -u 1000 -g appuser -m appuser
+RUN composer install --no-dev --optimize-autoloader
 
-RUN chown -R appuser:appuser /var/www/html
-
-USER appuser
-
-RUN php -v
-RUN composer --version
-RUN composer clear-cache
-
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-USER root
-
-RUN [ -d /var/www/html/var ] && chown -R www-data:www-data /var/www/html/var || echo "Skipping chown, /var/www/html/var not found"
+RUN chown -R www-data:www-data /var/www/html
 
 RUN printf "<Directory /var/www/html/public>\n    AllowOverride All\n</Directory>\n" > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
 
