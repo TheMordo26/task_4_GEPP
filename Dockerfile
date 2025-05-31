@@ -22,7 +22,7 @@ USER symfonyuser
 
 COPY --chown=symfonyuser:symfonyuser composer.json composer.lock ./
 
-RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
+RUN composer install --optimize-autoloader --prefer-dist --no-scripts
 
 COPY --chown=symfonyuser:symfonyuser . .
 
