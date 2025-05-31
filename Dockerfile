@@ -19,9 +19,9 @@ WORKDIR /var/www/html
 
 COPY composer.* ./
 
-COPY . .
-
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
+
+COPY . .
 
 RUN php bin/console cache:clear || true
 
