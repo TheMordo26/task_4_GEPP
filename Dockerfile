@@ -19,12 +19,9 @@ COPY . /var/www/html
 
 WORKDIR /var/www/html
 
-RUN composer config --no-interaction allow-plugins.symfony/runtime true && \
-    composer require symfony/runtime --no-scripts
-
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-RUN php bin/console cache:clear
+RUN php bin/console cache:clear || true
 
 RUN mkdir -p var && chown -R www-data:www-data var public
 
