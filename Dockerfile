@@ -19,7 +19,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
+
+RUN composer require symfony/runtime --no-interaction
 
 RUN php bin/console cache:clear || true
 
