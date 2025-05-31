@@ -19,11 +19,11 @@ WORKDIR /var/www/html
 
 COPY composer.* ./
 
-RUN composer install --no-dev --optimize-autoloader --prefer-dist
-
 COPY . .
 
-RUN [ -f bin/console ] && php bin/console cache:clear || true
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
+
+RUN php bin/console cache:clear || true
 
 RUN mkdir -p var && chown -R www-data:www-data var public
 
