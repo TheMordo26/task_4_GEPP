@@ -19,10 +19,14 @@ COPY . /var/www/html
 
 WORKDIR /var/www/html
 
-RUN composer require symfony/runtime --no-scripts \
-    && composer install --no-dev --optimize-autoloader
+RUN composer config --no-interaction allow-plugins.symfony/runtime true && \
+    composer require symfony/runtime --no-scripts
 
-RUN chown -R www-data:www-data /var/www/html/var /var/www/html/public
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+RUN php bin/console cache:clear
+
+RUN mkdir -p var && chown -R www-data:www-data var public
 
 RUN echo '<Directory /var/www/html/public>\n\
     AllowOverride All\n\
