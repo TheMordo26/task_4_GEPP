@@ -1,37 +1,30 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    libonig-dev \
-    libpq-dev \
     git \
     unzip \
-    zip \
-    && docker-php-ext-install intl pdo pdo_pgsql opcache
+    libicu-dev \
+    libonig-dev \
+    libzip-dev \
+    libpq-dev \
+    && docker-php-ext-install intl mbstring zip pdo pdo_pgsql
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-RUN a2enmod rewrite
-
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+RUN useradd -m symfonyuser
 
 WORKDIR /var/www/html
 
-COPY . .
+COPY composer.json composer.lock ./
+
+RUN chown symfonyuser:symfonyuser ./
+
+USER symfonyuser
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
 
-RUN composer require symfony/runtime --no-interaction
+COPY --chown=symfonyuser:symfonyuser . .
 
 RUN php bin/console cache:clear || true
 
-RUN mkdir -p var && chown -R www-data:www-data var public
+EXPOSE 8000
 
-RUN echo '<Directory /var/www/html/public>\n\
-    AllowOverride All\n\
-    Require all granted\n\
-</Directory>' > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
-
-EXPOSE 80
-
-CMD ["apache2-foreground"]
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
