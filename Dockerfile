@@ -19,13 +19,11 @@ WORKDIR /var/www/html
 
 COPY composer.* ./
 
-RUN composer require symfony/runtime
-
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
 COPY . .
 
-RUN php bin/console cache:clear || true
+RUN [ -f bin/console ] && php bin/console cache:clear || true
 
 RUN mkdir -p var && chown -R www-data:www-data var public
 
