@@ -15,11 +15,15 @@ RUN a2enmod rewrite
 
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-COPY . /var/www/html
-
 WORKDIR /var/www/html
 
+COPY composer.* ./
+
+RUN composer require symfony/runtime
+
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
+
+COPY . .
 
 RUN php bin/console cache:clear || true
 
