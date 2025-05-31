@@ -1,5 +1,6 @@
 FROM php:8.2-cli
 
+# Instala dependencias y extensiones PHP necesarias
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -9,15 +10,17 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && docker-php-ext-install intl mbstring zip pdo pdo_pgsql
 
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 RUN useradd -m symfonyuser
 
 WORKDIR /var/www/html
 
-COPY composer.json composer.lock ./
-
-RUN chown symfonyuser:symfonyuser ./
+RUN chown symfonyuser:symfonyuser /var/www/html
 
 USER symfonyuser
+
+COPY --chown=symfonyuser:symfonyuser composer.json composer.lock ./
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-scripts
 
