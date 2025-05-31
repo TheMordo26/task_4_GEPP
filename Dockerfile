@@ -17,11 +17,9 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 
 WORKDIR /var/www/html
 
-COPY composer.* ./
+COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
-
-COPY . .
 
 RUN php bin/console cache:clear || true
 
