@@ -1,17 +1,16 @@
-# config/packages/framework.yaml
 framework:
     secret: '%env(APP_SECRET)%'
     csrf_protection: true
+    http_method_override: true
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'  
+    trusted_hosts: '%env(TRUSTED_HOSTS)%'     
+     
     session:
         handler_id: session.handler.native_file
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
-        cookie_secure: true
-        cookie_samesite: none
+        cookie_secure: auto    
+        cookie_samesite: lax       
         storage_factory_id: session.storage.factory.native
-    # Note that the session will be started ONLY if you read or write from it.
-
-    #esi: true
-    #fragments: true
 
 when@test:
     framework:
