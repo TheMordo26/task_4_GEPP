@@ -1,34 +1,39 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 RUN apt-get update && apt-get install -y \
     libicu-dev \
     libonig-dev \
     libpq-dev \
+    libzip-dev \
     git \
     unzip \
     zip \
-    && docker-php-ext-install intl pdo pdo_pgsql opcache
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+    && docker-php-ext-install intl pdo pdo_pgsql opcache zip
 
 RUN a2enmod rewrite
 
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-
-COPY . /var/www/html
-
 WORKDIR /var/www/html
 
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN php bin/console cache:clear || true
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
-RUN mkdir -p var && chown -R www-data:www-data var public
+COPY . .
+
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+RUN mkdir -p var && chown -R www-data:www-data var public && chmod -R 775 var
+
+COPY docker/php.ini /usr/local/etc/php/php.ini
+
+ENV APP_ENV=prod
 
 RUN echo '<Directory /var/www/html/public>\n\
     AllowOverride All\n\
     Require all granted\n\
-</Directory>' > /etc/apache2/conf-available/symfony.conf && a2enconf symfony
+</Directory>' > /etc/apache2/conf-available/symfony.conf \
+    && a2enconf symfony
 
 EXPOSE 80
 
