@@ -18,8 +18,8 @@ A modern task management web application built with **Symfony**, **PostgreSQL**,
 
 ## Tech Stack
 
-- PHP 8.x
-- Symfony 6.x
+- PHP 8.4
+- Symfony 7.2
 - PostgreSQL
 - Doctrine ORM
 - Bootstrap 5
